@@ -1,0 +1,18 @@
+.UserCard{
+    display: flex;
+    width: 60%;
+    margin: 40px 80px;
+    background-color: rgb(62, 200, 131);
+    height: 130px;
+    border-radius: 15px;
+}
+
+.UserCard img{
+    margin:10px;
+}
+.UserCard p{
+    text-align: center;
+    font-size: 20px;
+}
+
+

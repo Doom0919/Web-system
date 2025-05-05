@@ -1,0 +1,35 @@
+.Header {
+     background-color: rgb(62, 200, 131);
+     margin: 0;
+     display: flex;
+     justify-content: space-between; /* Space between h2 and buttons */
+     align-items: center; /* Center items vertically */
+     padding: 0 30px;
+     height: 80px;
+ }
+ 
+ .Header h2 {
+     text-align: center;
+     margin: 0; /* Remove margin to avoid extra space */
+     flex-grow: 1; /* Allow h2 to take available space */
+ }
+ 
+ .buttons {
+     display: flex; /* Use flexbox for buttons */
+     align-items: center; /* Center buttons vertically */
+ }
+ 
+ .buttons button {
+     background-color: aqua;
+     border: none; 
+     padding: 10px 20px; 
+     margin-left: 10px; 
+     cursor: pointer; 
+     border-radius: 16px;
+     width: 140px;
+     transition: background-color 0.3s; 
+ }
+ 
+ .buttons button:hover {
+     background-color: rgb(53, 19, 110); /* Change color on hover */
+ }
