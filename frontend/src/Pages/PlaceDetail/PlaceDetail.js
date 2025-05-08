@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import api from '../../api';
+import axios from "axios"; 
 
 // Fix Leaflet marker issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -14,17 +15,13 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
-export default function PlaceDetail() {
+export default function PlaceDetail({authToken}) {
   const { u_id, p_id } = useParams();
   const [place, setPlace] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [ authToken, setAuthToken] = useState(null);
-
+  const [userId, setUserId] = useState(null);
   useEffect(() => {
-    const storedToken = localStorage.getItem('authToken');
-    if (storedToken) {
-      setAuthToken(storedToken); 
-    }
+   
     api.get(`http://localhost:5000/api/places/${p_id}`)
       .then(response => {
         setPlace(response.data.place);
@@ -34,8 +31,27 @@ export default function PlaceDetail() {
         console.error('Error fetching place:', error);
         setIsLoading(false);
       });
-  }, [authToken, p_id]);
-   
+  }, [ p_id]);
+  useEffect(() => {
+    const fetchUserId = async () => {
+        try {
+            const response = await axios.get('http://localhost:5000/api/users/loginu', {
+                headers: {
+                    Authorization: `Bearer ${authToken}`,
+                },
+            });
+
+            setUserId(response.data.userId);
+        } catch (error) {
+            console.error('Error fetching user ID:', error);
+        }
+    };
+
+    if (authToken) {
+        fetchUserId();
+    }
+}, [authToken]);
+
   if (isLoading) {
     return (
       <div className="loading-container" aria-busy="true">
@@ -98,7 +114,7 @@ export default function PlaceDetail() {
           <Marker position={[place.loc_x, place.loc_y]} />
         </MapContainer>
       </div>
-      {authToken && authToken.toString() === u_id.toString() && (
+      {userId && userId.toString() === u_id.toString() && (
             <Link to={`/editplace/${u_id}/${p_id}`}>
               <button className="button">Edit Place</button>
             </Link>

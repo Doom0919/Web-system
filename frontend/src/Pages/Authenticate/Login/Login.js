@@ -11,7 +11,6 @@ export default function Login({ setAuthToken }) {
   });
   const [errors, setErrors] = useState([]);
 
-  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors([]);
@@ -21,30 +20,22 @@ export default function Login({ setAuthToken }) {
       return;
     }
 
-    console.log("Login request:", user); // Log the login request
-
     try {
       const res = await axios.post('http://localhost:5000/api/users/login', {
         email: user.email,
         password: user.password
       });
-      const { userId } = res.data;
-      setAuthToken(userId); 
-      localStorage.setItem('authToken', userId); 
-      navigate(`/${userId}/places`);
-      window.location.reload();  
+      const { accessToken, refreshToken, expiresIn } = res.data;
+      
+      setAuthToken({ accessToken, refreshToken, expiresIn });
+
+      navigate('/home'); 
     } catch (err) {
-      if (err.response && err.response.data.errors) {
-        setErrors(err.response.data.errors);
-      } else if (err.response && err.response.data.message) {
+      if (err.response && err.response.data.message) {
         alert(err.response.data.message);
       } else {
-        alert("Invalid email or password");
+        alert('Login failed. Please try again.');
       }
-      setUser({
-        email: '',
-        password: ''
-      });
     }
   };
 

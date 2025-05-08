@@ -18,7 +18,7 @@ export default function Place() {
       return;
     }
 
-    api.get(`http://localhost:5000/api/places/user/${u_id}`)
+    api.get(`/places/user/${u_id}`)
       .then((res) => {
         setFplaces(res.data.places);
         setLoading(false);

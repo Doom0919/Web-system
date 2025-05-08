@@ -3,9 +3,8 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import './AddPlace.css';
-import api from '../../api';
+import { useNavigate } from "react-router-dom";
 
-// Fix Leaflet marker icon issue
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
@@ -13,9 +12,9 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
-export default function AddPlace() {
+export default function AddPlace({authToken, api }) {
+  const navigate = useNavigate();
   const [place, setPlace] = useState({
-    creator: localStorage.getItem('authToken'),
     title: '',
     description: '',
     imgLink: '',
@@ -23,7 +22,6 @@ export default function AddPlace() {
     loc_x: 47.918873,
     loc_y: 106.917702,
   });
-
   const [errors, setErrors] = useState([]);
 
   const handleInputChange = (e) => {
@@ -38,15 +36,26 @@ export default function AddPlace() {
     e.preventDefault();
     setErrors([]);
 
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      alert("You must be logged in to add a place.");
+    if (!place.title.trim()) {
+      setErrors([{ msg: "Title is required." }]);
+      return;
+    }
+    if (!place.location.trim()) {
+      setErrors([{ msg: "Location is required." }]);
+      return;
+    }
+    if (isNaN(place.loc_x) || isNaN(place.loc_y)) {
+      setErrors([{ msg: "Coordinates must be valid numbers." }]);
       return;
     }
 
     try {
-      const response = await api.post(
-        'http://localhost:5000/api/places/',
+      if (!authToken) {
+        alert([{ msg: "Authentication token is missing. Please log in." }]);
+        return;
+      }
+      await api.post(
+        '/places/',
         {
           title: place.title,
           description: place.description,
@@ -54,13 +63,16 @@ export default function AddPlace() {
           location: place.location,
           loc_x: place.loc_x,
           loc_y: place.loc_y,
-          creator: token,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`, // Fix header capitalization
+          },
         }
       );
-
       alert("Place added successfully!");
+      navigate('/');
       setPlace({
-        creator: token,
         title: '',
         description: '',
         imgLink: '',
@@ -72,6 +84,7 @@ export default function AddPlace() {
       if (error.response && error.response.data.errors) {
         setErrors(error.response.data.errors);
       } else {
+        setErrors([{ msg: 'Error adding place: ' + (error.message || 'Unknown error') }]);
         console.error('Error adding place:', error);
       }
     }

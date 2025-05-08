@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import { useState } from 'react';
+import { createApi } from './api';
 import './App.css';
 import Header from './Component/Header/Header.js';
 
@@ -22,40 +23,42 @@ function ProtectedRoute({ authToken, children }) {
 }
 
 function App() {
-  const [authToken, setAuthToken] = useState(null);
+  const [auth, setAuth] = useState({
+    accessToken: null,
+    refreshToken: null,
+    expiresIn: null,
+  });
+
+  const api = createApi({
+    getAccessToken: () => auth.accessToken,
+    getRefreshToken: () => auth.refreshToken,
+    setAuthTokens: (accessToken, refreshToken, expiresIn) =>
+      setAuth({ accessToken, refreshToken, expiresIn }),
+    onLogout: () => setAuth({ accessToken: null, refreshToken: null, expiresIn: null }),
+  });
+
   return (
     <BrowserRouter>
-      <Header authToken={authToken} setAuthToken={setAuthToken} />
+      <Header authToken={auth.accessToken} setAuthToken={setAuth} />
       <Suspense fallback={<div>Loading...</div>}>
         <Routes>
-          {/* Home Page */}
-          <Route path='/' element={<Home />} />
-
-          {/* Authentication Routes */}
-          <Route path='/authenticate/register/' element={<Register />} />
-          <Route path='/authenticate/login/' element={<Login setAuthToken={setAuthToken} />} />
-
-          {/* User Places */}
-          <Route path='/:u_id/places/' element={<Place />} />
-
-          {/* Add Place */}
+          <Route path='/' element={<Home api={api}/>} />
+          <Route path='/authenticate/register/' element={<Register api={api} />} />
+          <Route path='/authenticate/login/' element={<Login setAuthToken={setAuth} api={api} />} />
+          <Route path='/:u_id/places/' element={<Place api={api} />} />
           <Route path='/addplace/' element={
-            <ProtectedRoute authToken={authToken}>
-              <AddPlace authToken={authToken} />
+            <ProtectedRoute authToken={auth.accessToken}>
+              <AddPlace authToken={auth.accessToken} api={api} />
             </ProtectedRoute>
           } />
-
-          {/* Place Details */}
           <Route path='/placedetail/:u_id/:p_id' element={
-            <ProtectedRoute authToken={authToken}>
-              <PlaceDetail authToken={authToken} />
+            <ProtectedRoute authToken={auth.accessToken}>
+              <PlaceDetail authToken={auth.accessToken} api={api} />
             </ProtectedRoute>
           } />
-
-          {/* Edit Place */}
           <Route path='/editplace/:u_id/:p_id' element={
-            <ProtectedRoute authToken={authToken}>
-              <EditPlace authToken={authToken} />
+            <ProtectedRoute authToken={auth.accessToken}>
+              <EditPlace authToken={auth.accessToken} api={api} />
             </ProtectedRoute>
           } />
         </Routes>
